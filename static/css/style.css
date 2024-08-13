@@ -289,3 +289,20 @@ p {
 .btn:hover {
   background-color: #0056b3;
 }
+
+/* 結帳欄位樣式 */
+
+.main-content {
+  display: flex;
+}
+
+.product-section {
+  width: 66.6%;
+}
+
+.cart-section {
+  width: 33.3%;
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-left: 1px solid #ddd;
+}

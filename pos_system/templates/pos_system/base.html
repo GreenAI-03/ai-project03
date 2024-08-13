@@ -51,21 +51,61 @@
             </div>
           </section>
         {% endfor %}
+        <!-- Right Sidebar -->
+        <div class="cart-section">
+          <h2>購物車</h2>
+            <div id="cart-items">
+            <!-- Cart items will be dynamically added here -->
+            </div>
+            <button onclick="checkout()">結帳</button>
+        </div>
       </main>
     </div>
     <script>
+      var cart = [];
+
       function changeQuantity(productId, change) {
-        var quantityInput = document.getElementById('quantity' + productId);
-        var currentQuantity = parseInt(quantityInput.value, 10);
-        var newQuantity = currentQuantity + change;
-        if (newQuantity >= 1) {
-          quantityInput.value = newQuantity;
-        }
+          var quantityInput = document.getElementById('quantity' + productId);
+          var currentQuantity = parseInt(quantityInput.value, 10);
+          var newQuantity = currentQuantity + change;
+          if (newQuantity >= 1) {
+              quantityInput.value = newQuantity;
+          }
       }
 
       function addToCart(productId, quantity) {
-        console.log(`Product ID: ${productId}, Quantity: ${quantity}`);
+          cart.push({productId: productId, quantity: quantity});
+          updateCartDisplay();
       }
-    </script>
+
+      function updateCartDisplay() {
+          var cartItemsDiv = document.getElementById('cart-items');
+          cartItemsDiv.innerHTML = '';
+          cart.forEach(function(item) {
+              cartItemsDiv.innerHTML += `<p>商品 ID: ${item.productId}, 數量: ${item.quantity}</p>`;
+          });
+      }
+
+      function checkout() {
+        fetch("{% url 'checkout' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify(cart)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("結帳成功！");
+                cart = [];
+                updateCartDisplay();
+            } else {
+                alert("結帳失敗，請稍後再試。");
+            }
+        });
+    }
+  </script>
 </body>
 </html>

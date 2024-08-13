@@ -1,8 +1,9 @@
-from .models import Category, Product
+from .models import Category, Product, Sale
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
 from .forms import CustomUserCreationForm
+from django.http import JsonResponse
 
 def index(request):
     if not request.user.is_authenticated:
@@ -48,3 +49,41 @@ def register_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+import json
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Product, Sale, OrderItem, Order
+
+def checkout(request):
+    if request.method == 'POST':
+        cart_items = request.POST.getlist('cart_items')
+        order = Order.objects.create(user=request.user)
+
+        for item_id in cart_items:
+            product = Product.objects.get(id=item_id)
+            OrderItem.objects.create(order=order, product=product, quantity=1)
+
+        return redirect('success_page')  # 重定向到一个成功页面
+    return render(request, 'checkout.html')
+
+
+def add_to_cart(request):
+    product_id = request.POST.get('product_id')
+    quantity = int(request.POST.get('quantity'))
+    product = Product.objects.get(id=product_id)
+    
+    cart = request.session.get('cart', {})
+    
+    if product_id in cart:
+        cart[product_id]['quantity'] += quantity
+    else:
+        cart[product_id] = {
+            'name': product.name,
+            'price': product.price,
+            'quantity': quantity,
+        }
+    
+    request.session['cart'] = cart
+    
+    return redirect('index')

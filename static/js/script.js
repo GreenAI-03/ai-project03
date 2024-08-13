@@ -22,3 +22,4 @@ function addToCart(productId, quantity) {
   // You can implement AJAX or other methods here to handle cart operations
   console.log(`Product ID: ${productId}, Quantity: ${quantity}`);
 }
+
