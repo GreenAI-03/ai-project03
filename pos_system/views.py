@@ -2,6 +2,7 @@ from .models import Category, Product
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
+from .forms import CustomUserCreationForm
 
 def index(request):
     if not request.user.is_authenticated:
@@ -31,7 +32,7 @@ def login_view(request):
 
 def register_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             username = form.cleaned_data.get('username')
@@ -40,7 +41,7 @@ def register_view(request):
             login(request, user)
             return redirect('index')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
 
     return render(request, 'pos_system/register.html', {'form': form})
 
