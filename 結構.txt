@@ -1,0 +1,33 @@
+myproject/
+├── manage.py
+├── myproject/
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+└── pos_system/
+    ├── __init__.py
+    ├── admin.py
+    ├── apps.py
+    ├── forms.py
+    ├── migrations/
+    │   ├── __init__.py
+    ├── models.py
+    ├── templates/
+    │   ├── pos_system/
+    │   │   ├── base.html
+    │   │   ├── login.html
+    │   │   ├── index.html
+    │   │   ├── cart.html
+    │   │   ├── checkout.html
+    ├── static/
+    │   ├── css/
+    │   │   └── (CSS files)
+    │   ├── js/
+    │   │   └── (JavaScript files)
+    │   └── images/
+    │       └── (Product images)
+    ├── tests.py
+    ├── urls.py
+    └── views.py

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>POS SYSTEM</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <script defer src="{% static 'js/script.js' %}"></script>
+    
+</head>
+<body>
+    <header>
+      {% block title %} POS SYSTEM {% endblock %}
+      <div class="header-right">
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">登出</button>
+        </form>
+    </div>
+    </header>
+    <div class="container">
+      <nav>
+        <ul>
+          {% for category in categories %}
+            <li>
+              <a href="#category{{ category.id }}" onclick="showSection('category{{ category.id }}')">{{ category.name }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+      <main>
+        {% for category in categories %}
+          <section id="category{{ category.id }}" class="content-section">
+            <h2>{{ category.name }}</h2>
+            <div class="product-grid">
+              {% for product in products %}
+                {% if product.category.id == category.id %}
+                  <div class="product-item">
+                    <h3>{{ product.name }}
+                      <div class="quantity-control">
+                        <button onclick="changeQuantity('{{ product.id }}', -1)">-</button>
+                        <input type="number" id="quantity{{ product.id }}" name="quantity{{ product.id }}" value="1" min="1" readonly />
+                        <button onclick="changeQuantity('{{ product.id }}', 1)">+</button>
+                      </div>
+                      <button onclick="addToCart('{{ product.id }}', document.getElementById('quantity{{ product.id }}').value)">Add to Cart</button>
+                    </h3>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </section>
+        {% endfor %}
+      </main>
+    </div>
+    <script>
+      function changeQuantity(productId, change) {
+        var quantityInput = document.getElementById('quantity' + productId);
+        var currentQuantity = parseInt(quantityInput.value, 10);
+        var newQuantity = currentQuantity + change;
+        if (newQuantity >= 1) {
+          quantityInput.value = newQuantity;
+        }
+      }
+
+      function addToCart(productId, quantity) {
+        console.log(`Product ID: ${productId}, Quantity: ${quantity}`);
+      }
+    </script>
+</body>
+</html>
