@@ -1,0 +1,14 @@
+<h2>最近五筆消費記錄</h2>
+<ul>
+    {% for sale in recent_sales %}
+        <li>
+            顧客姓名:{{ customer.name }}<br>
+            消費日期: {{ sale.sale_date }}<br>
+            產品: {{ sale.product_name }}<br>
+            金額: {{ sale.total_price }}<br>
+            結帳人員: {{ sale.cashier }}<br>
+            發票號碼: {{ sale.invoice_number }}<br>
+            習慣及喜好:{{ customer.special_requests }}<br>
+        </li>
+    {% endfor %}
+</ul>

@@ -87,3 +87,62 @@ def add_to_cart(request):
     request.session['cart'] = cart
     
     return redirect('index')
+
+
+import matplotlib.pyplot as plt
+import io
+import base64
+from django.shortcuts import render
+from .models import Sale
+from django.db.models import Sum
+from datetime import timedelta, datetime
+
+def get_sales_data(time_delta):
+    now = datetime.now()
+    start_date = now - time_delta
+    sales = Sale.objects.filter(sale_date__gte=start_date)
+    return sales
+
+def sales_chart(request, period):
+    if period == 'daily':
+        delta = timedelta(days=1)
+    elif period == 'weekly':
+        delta = timedelta(weeks=1)
+    elif period == 'monthly':
+        delta = timedelta(weeks=4)
+    elif period == 'quarterly':
+        delta = timedelta(weeks=13)
+    elif period == 'semiannually':
+        delta = timedelta(weeks=26)
+    elif period == 'yearly':
+        delta = timedelta(weeks=52)
+    else:
+        delta = timedelta(days=1)
+    
+    sales = get_sales_data(delta)
+    dates = sales.values_list('sale_date', flat=True)
+    totals = sales.values_list('quantity', flat=True)
+    
+    plt.figure(figsize=(10,6))
+    plt.plot(dates, totals)
+    plt.title(f'{period.capitalize()} Sales Analysis')
+    plt.xlabel('Date')
+    plt.ylabel('Total Sales')
+    
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    graphic = base64.b64encode(image_png)
+    graphic = graphic.decode('utf-8')
+
+    return render(request, 'sales_chart.html', {'graphic': graphic})
+
+from django.shortcuts import render, get_object_or_404
+from .models import Customer
+
+def recent_sales(request, e_invoice_carrier):
+    customer = get_object_or_404(Customer, e_invoice_carrier=e_invoice_carrier)
+    recent_sales = customer.sales.order_by('-sale_date')[:5]  # 最近五筆記錄
+    return render(request, 'recent_sales.html', {'customer': customer, 'recent_sales': recent_sales})
