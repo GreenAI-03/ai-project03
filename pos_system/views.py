@@ -10,9 +10,11 @@ def index(request):
         return redirect('login')
     categories = Category.objects.all()
     products = Product.objects.all()
+    cart = request.session.get('cart', {})
     context = {
         'categories': categories,
         'products': products,
+        'cart': cart,
     }
     return render(request, 'pos_system/index.html', context)
 
@@ -55,6 +57,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Product, Sale, OrderItem, Order
 
+# ！！！！有問題！！！！
+# 點擊結帳後導向有問題
 def checkout(request):
     if request.method == 'POST':
         cart_items = request.POST.getlist('cart_items')
@@ -68,22 +72,29 @@ def checkout(request):
     return render(request, 'checkout.html')
 
 
+# add_to_cart函數
+# ！！！！有問題！！！！
+# 購屋車不會顯示 系統回應Not Found: /add-to-cart/
+from django.http import JsonResponse
+from .models import Product
+from django.shortcuts import get_object_or_404
+
 def add_to_cart(request):
-    product_id = request.POST.get('product_id')
-    quantity = int(request.POST.get('quantity'))
-    product = Product.objects.get(id=product_id)
-    
-    cart = request.session.get('cart', {})
-    
-    if product_id in cart:
-        cart[product_id]['quantity'] += quantity
-    else:
-        cart[product_id] = {
-            'name': product.name,
-            'price': product.price,
-            'quantity': quantity,
-        }
-    
-    request.session['cart'] = cart
-    
-    return redirect('index')
+    if request.method == 'POST':
+        product_id = request.POST.get('product_id')
+        quantity = int(request.POST.get('quantity', 1))
+        
+        product = get_object_or_404(Product, id=product_id)
+        
+        cart = request.session.get('cart', {})
+        if product_id in cart:
+            cart[product_id]['quantity'] += quantity
+        else:
+            cart[product_id] = {
+                'name': product.name,
+                'price': product.price,
+                'quantity': quantity,
+            }
+        request.session['cart'] = cart
+        
+        return JsonResponse({'cart': cart})
