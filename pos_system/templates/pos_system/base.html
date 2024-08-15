@@ -11,11 +11,13 @@
 </head>
 <body>
     <header>
+      <div class="header-left">
       {% block title %} POS SYSTEM {% endblock %}
+      </div>
       <div class="header-right">
         <form action="{% url 'logout' %}" method="post">
             {% csrf_token %}
-            <button type="submit">登出</button>
+            <button type="submit" class="coolBeans">登出</button>
         </form>
     </div>
     </header>
