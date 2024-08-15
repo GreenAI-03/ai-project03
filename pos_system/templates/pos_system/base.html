@@ -21,17 +21,30 @@
         </form>
     </div>
     </header>
-    <div class="container">
-      <nav>
-        <ul>
-          {% for category in categories %}
-            <li>
-              <a href="#category{{ category.id }}" onclick="showSection('category{{ category.id }}')">{{ category.name }}</a>
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
-      <main>
+    <!--頁面上層漸層色(未使用實漸層色減緩色衰)及右測連結(可設定連結官方)-->
+    <div class="card">
+      <a href="https://mythrillfiction.com/" target="_blank">官方聯絡</a>
+    <!--頁面上層漸層色-->
+      <div class="container">
+       <nav>
+         <ul>
+           {% for category in categories %}
+              <li>
+               <a href="#category{{ category.id }}" onclick="showSection('category{{ category.id }}')">{{ category.name }}</a>
+             </li>
+           {% endfor %}
+          </ul>
+        </nav>
+       <main>
+        
+        <!--頁面下方海洋-->
+        <div class="ocean">
+          <div class="wave"></div>
+          <div class="wave"></div>
+          <div class="wave"></div>
+        </div>
+        <!--頁面下方海洋-->
+      
         {% for category in categories %}
           <section id="category{{ category.id }}" class="content-section">
             <h2>{{ category.name }}</h2>
