@@ -1,3 +1,47 @@
+/*響應式*/
+.container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 20px;
+}
+
+.item {
+  width: 45%; /* 使用百分比来设置宽度 */
+  padding: 20px;
+  background-color: #444;
+  color: #fff;
+  margin: 10px;
+  box-sizing: border-box;
+}
+
+/* 媒体查询：在更小的屏幕上将宽度设置为100% */
+@media (max-width: 768px) {
+  .item {
+    width: 100%;
+  }
+}
+/*另一種響應式
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 20px;
+}
+
+.item {
+  background-color: #1f65da;
+  color: white;
+  padding: 20px;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .item {
+    font-size: 1rem;  小屏幕上减少字体大小 
+    flex: 1 1 100%;  每个项目占据100%的宽度 */
+
+/*響應式*/
+
 /* style.css */
 body,
 html {
@@ -21,7 +65,7 @@ html, body {
 
 /* waves */
 .ocean {
-  height: 30px; /* change the height of the waves here */
+  height: 40px; /* change the height of the waves here */
   width: 100%;
   position: absolute;
   bottom: 0;
@@ -74,7 +118,7 @@ h1 {
 .container {
   display: flex;
   flex: 1;
-  height: calc(100vh - 60px); /* 60px is the height of the header */
+  height: calc(91.4vh - 50px); /* 60px is the height of the header */
 }
 
 nav {
@@ -87,6 +131,20 @@ nav {
   overflow: auto;
   flex-shrink: 0;
 }
+/*右側結賬欄位置設定*/
+nav2 {
+  width: 200px;
+  background: #baeef400;
+  color: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+  height: 30%;
+  overflow: auto;
+  flex-shrink: 0;
+  -o-box-align: center;
+  align-items: center;
+}
+/*右側結賬欄位置設定*/
 
 .profile {
   text-align: center;
@@ -279,15 +337,48 @@ p {
 /* 將 header 分為左邊和右邊 */
 .header-left {
   float: left;
-  background-color: #1f65da;
+  background-color: #1f64da00;
   color: #fff;
   border: none;
   padding: 8px 16px;
   cursor: pointer;
   font-size: 16px;
 }
-
-
+/* 將 POS SYSTEM 美化 */
+.header-left body {
+  margin: 0;
+  background: #1e90ff;
+  height: 100vh;
+  display: -ms-flexbox;
+  display: box;
+  display: flex;
+  -o-box-pack: center;
+  justify-content: center;
+  -o-box-align: center;
+  align-items: center;
+}
+.header-left button {
+  background-color: #ffffff00;
+  border: 0;
+  outline: 0;
+  padding: 0.2rem 0.4rem;
+  font-size: 1.9rem;
+  font-family: monospace;
+  box-shadow: 0px 5px 10px #0058ab00;
+  transition: all 1s;
+  cursor: pointer;
+  border-radius: 5px;
+  border-bottom: 4px solid #0057ab;
+}
+.header-left button:hover {
+  box-shadow: 0px 5px 10px -5px #0057ab;
+  transform: scale(1.33);
+}
+.header-left button:active {
+  box-shadow: 0px 4px 8px #0065c8;
+  transform: scale(0.98);
+}
+/* 將 POS SYSTEM 美化 */
 
 .header-right {
   float: right;
@@ -418,8 +509,8 @@ p {
   }
   
   :root {
-    --card-height: 100vh;
-    --card-width: calc(var(--card-height) / 0.483);
+    --card-height: repeat(auto-fit, minmax(200px, 1fr));
+    --card-width: repeat(auto-fit, minmax(200px, 1fr));
   }
   
 
@@ -447,6 +538,7 @@ p {
   .card:hover:before, .card:hover:after {
     animation: none;
     opacity: 0;
+    z-index: -1;
   }
   
     
@@ -457,14 +549,14 @@ p {
     left: 0;
     right: 0;
     z-index: 1;
-    height: 105%;
-    width: 105%;
+    height: 100%;
+    width: 100%;
     margin: 0 auto;
-    transform: scale(0.8);
+    transform: scale(1.0);
     filter: blur(calc(var(--card-height) / 6));
     background-image: linear-gradient(
       var(--rotate)
-      , #5ddcff, #89d9f8 23%, #b991f7);
+      , #5ddcff, #89d9f8 43%, #b991f7);
       opacity: 1;
     transition: opacity 1.0s;
     animation: spin 1.5s linear infinite;

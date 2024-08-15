@@ -12,7 +12,7 @@
 <body>
     <header>
       <div class="header-left">
-      {% block title %} POS SYSTEM {% endblock %}
+        <button> POS SYSTEM </button>   <!--將 POS SYSTEM 美化-->
       </div>
       <div class="header-right">
         <form action="{% url 'logout' %}" method="post">
@@ -66,15 +66,20 @@
             </div>
           </section>
         {% endfor %}
-        <!-- Right Sidebar -->
-        <div class="cart-section">
-          <h2>購物車</h2>
-            <div id="cart-items">
-            <!-- Cart items will be dynamically added here -->
-            </div>
-            <button onclick="checkout()">結帳</button>
-        </div>
-      </main>
+       </main>
+       <!-- Right Sidebar -->
+        <!-- 購物車右側列表 -->
+        <div class="header-right">
+        <div class="container">
+          <nav2><!-- 右側結賬欄位置設定 -->
+           <div class="cart-section">
+            <h2>購物車</h2>
+             <div id="cart-items">
+             <!-- Cart items will be dynamically added here -->
+             </div>
+             <button onclick="checkout()">結帳</button>
+           </div>
+          </nav2>
     </div>
     <script>
       var cart = [];
