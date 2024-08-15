@@ -51,19 +51,31 @@
             </div>
           </section>
         {% endfor %}
-        <!-- Right Sidebar -->
-        <div class="cart-section">
-          <h2>購物車</h2>
-            <div id="cart-items">
-            <!-- Cart items will be dynamically added here -->
-            </div>
-            <button onclick="checkout()">結帳</button>
-        </div>
       </main>
     </div>
-    <script>
-      var cart = [];
+         <!-- 右侧购物车栏 -->
+         <div class="cart-section">
+          <h2>購物車</h2>
+          <ul id="cart-list">
+              
+          </ul>
+          <!-- DOM -->
+          <!--Div 元素呈現 -->
+          
 
+          <form action="{% url 'checkout' %}" method="post">
+              {% csrf_token %}
+              <!-- js var 傳到後台 -->
+              <button type="submit">結帳</button>
+          </form>
+      </div>      
+  </div>
+
+  <script>
+      let target_url = "http://127.0.0.1:8000{% url 'add_to_cart' %}"
+
+      console.log(target_url)
+      // 改变数量函数
       function changeQuantity(productId, change) {
           var quantityInput = document.getElementById('quantity' + productId);
           var currentQuantity = parseInt(quantityInput.value, 10);
@@ -73,39 +85,38 @@
           }
       }
 
+      // 添加到购物车函数
       function addToCart(productId, quantity) {
-          cart.push({productId: productId, quantity: quantity});
-          updateCartDisplay();
-      }
-
-      function updateCartDisplay() {
-          var cartItemsDiv = document.getElementById('cart-items');
-          cartItemsDiv.innerHTML = '';
-          cart.forEach(function(item) {
-              cartItemsDiv.innerHTML += `<p>商品 ID: ${item.productId}, 數量: ${item.quantity}</p>`;
-          });
-      }
-
-      function checkout() {
-        fetch("{% url 'checkout' %}", {
-            method: "POST",
+        fetch('/add-to-cart/', {
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify(cart)
+            body: JSON.stringify({product_id: productId, quantity: quantity})
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert("結帳成功！");
-                cart = [];
-                updateCartDisplay();
-            } else {
-                alert("結帳失敗，請稍後再試。");
-            }
+            console.log(data);  // 检查服务器返回的数据
         });
     }
+    
+    
+
+      // 更新购物车显示
+      function updateCartDisplay(cart) {
+          var cartList = document.getElementById('cart-list');
+          cartList.innerHTML = '';
+          for (var productId in cart) {
+              var item = cart[productId];
+              cartList.innerHTML += `<li>${item.name} x ${item.quantity} - $${item.price}</li>`;
+          }
+      }
+
+      // 页面加载时初始化购物车显示
+      document.addEventListener('DOMContentLoaded', function() {
+          updateCartDisplay({{ cart|safe }});
+      });
   </script>
 </body>
 </html>
