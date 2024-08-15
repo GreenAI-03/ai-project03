@@ -57,18 +57,24 @@
          <div class="cart-section">
           <h2>購物車</h2>
           <ul id="cart-list">
-              {% for item_id, item in cart.items %}
-                  <li>{{ item.name }} x {{ item.quantity }} - ${{ item.price }}</li>
-              {% endfor %}
+              
           </ul>
+          <!-- DOM -->
+          <!--Div 元素呈現 -->
+          
+
           <form action="{% url 'checkout' %}" method="post">
               {% csrf_token %}
+              <!-- js var 傳到後台 -->
               <button type="submit">結帳</button>
           </form>
       </div>      
   </div>
 
   <script>
+      let target_url = "http://127.0.0.1:8000{% url 'add_to_cart' %}"
+
+      console.log(target_url)
       // 改变数量函数
       function changeQuantity(productId, change) {
           var quantityInput = document.getElementById('quantity' + productId);
@@ -81,25 +87,21 @@
 
       // 添加到购物车函数
       function addToCart(productId, quantity) {
-          var csrftoken = '{{ csrf_token }}';  // 从模板中获取CSRF token
-
-          fetch("{% url 'add_to_cart' %}", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json",
-                  "X-CSRFToken": csrftoken,
-              },
-              body: JSON.stringify({
-                  product_id: productId,
-                  quantity: quantity
-              })
-          })
-          .then(response => response.json())
-          .then(data => {
-              updateCartDisplay(data.cart);  // 更新购物车显示
-          })
-          .catch(error => console.error('Error:', error));
-      }
+        fetch('/add-to-cart/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({product_id: productId, quantity: quantity})
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);  // 检查服务器返回的数据
+        });
+    }
+    
+    
 
       // 更新购物车显示
       function updateCartDisplay(cart) {

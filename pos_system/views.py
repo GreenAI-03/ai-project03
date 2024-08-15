@@ -79,22 +79,53 @@ from django.http import JsonResponse
 from .models import Product
 from django.shortcuts import get_object_or_404
 
+
+# add_to_cart有問題 從資料庫拉 id=product_id 的資料拉不到
+# 所以會跳404
+# def add_to_cart(request):
+#     if request.method == 'POST':
+#         product_id = request.POST.get('product_id')
+#         quantity = int(request.POST.get('quantity', 1))
+        
+#         product = get_object_or_404(Product, id=product_id)
+        
+#         cart = request.session.get('cart', {})
+#         if product_id in cart:
+#             cart[product_id]['quantity'] += quantity
+#         else:
+#             cart[product_id] = {
+#                 'name': product.name,
+#                 'price': product.price,
+#                 'quantity': quantity,
+#             }
+#         request.session['cart'] = cart
+        
+#         return JsonResponse({'cart': cart})
+
+        # return JsonResponse({'cart': "id"})
+from decimal import Decimal
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+
 def add_to_cart(request):
     if request.method == 'POST':
-        product_id = request.POST.get('product_id')
-        quantity = int(request.POST.get('quantity', 1))
-        
+        body_unicode = request.body.decode('utf-8')
+        body_data = json.loads(body_unicode)
+        product_id = body_data.get('product_id')
+        quantity = int(body_data.get('quantity', 1))
+
         product = get_object_or_404(Product, id=product_id)
-        
+
         cart = request.session.get('cart', {})
         if product_id in cart:
             cart[product_id]['quantity'] += quantity
         else:
             cart[product_id] = {
                 'name': product.name,
-                'price': product.price,
+                'price': str(product.price),  # 将 Decimal 转换为字符串
                 'quantity': quantity,
             }
         request.session['cart'] = cart
-        
+
         return JsonResponse({'cart': cart})
+
