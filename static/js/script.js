@@ -1,5 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   showSection("about");
+  document
+    .getElementById("checkout-form")
+    .addEventListener("submit", handleCheckout);
+  updateCartDisplay(cart);
 });
 
 function showSection(id) {
@@ -14,16 +18,36 @@ function showSection(id) {
     item.classList.remove("active");
   });
 
-  document.getElementById(id).classList.add("active");
-  document.querySelector(`nav ul li a[href="#${id}"]`).classList.add("active");
+  const targetSection = document.getElementById(id);
+  if (targetSection) {
+    targetSection.classList.add("active");
+  } else {
+    console.warn(`Section with id ${id} not found.`);
+  }
+
+  const targetMenuItem = document.querySelector(`nav ul li a[href="#${id}"]`);
+  if (targetMenuItem) {
+    targetMenuItem.classList.add("active");
+  } else {
+    console.warn(`Menu item with href "#${id}" not found.`);
+  }
+}
+
+function changeQuantity(productId, change) {
+  var quantityInput = document.getElementById("quantity" + productId);
+  var currentQuantity = parseInt(quantityInput.value, 10);
+  var newQuantity = currentQuantity + change;
+  if (newQuantity >= 1) {
+    quantityInput.value = newQuantity;
+  }
 }
 
 function addToCart(productId, quantity) {
   if (!quantity) {
-    quantity = 1; // 如果没有传递数量值，设置默认值
+    quantity = 1;
   }
 
-  const csrftoken = getCookie("csrftoken"); // 获取CSRF token
+  const csrftoken = getCookie("csrftoken");
 
   fetch("/add-to-cart/", {
     method: "POST",
@@ -46,17 +70,9 @@ function addToCart(productId, quantity) {
     });
 }
 
-function updateCartUI(cart) {
-  const cartList = document.querySelector(".cart-section ul");
-  cartList.innerHTML = "";
-  for (const [itemId, item] of Object.entries(cart)) {
-    cartList.innerHTML += `<li>${item.name} x ${item.quantity} - $${item.price}</li>`;
-  }
-}
-
 function updateCartDisplay(cart) {
   let cartList = document.getElementById("cart-list");
-  cartList.innerHTML = ""; // 清空現有列表
+  cartList.innerHTML = "";
 
   for (let item_id in cart) {
     let item = cart[item_id];
@@ -80,3 +96,33 @@ function getCookie(name) {
   }
   return cookieValue;
 }
+
+function handleCheckout(event) {
+  event.preventDefault();
+
+  fetch("/checkout/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify(cart),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        alert("結帳成功！");
+        cart = [];
+        updateCartDisplay();
+      } else {
+        alert("結帳失敗，請稍後再試。");
+      }
+    })
+    .catch((error) => {
+      console.error("結帳時發生錯誤：", error);
+      alert("結帳失敗，請稍後再試。");
+    });
+}
+
+// 全局变量
+var cart = [];

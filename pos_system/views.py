@@ -59,50 +59,57 @@ from .models import Product, Sale, OrderItem, Order
 
 # ！！！！有問題！！！！
 # 點擊結帳後導向有問題
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from .models import Order, OrderItem, Product
+from decimal import Decimal
+
+@require_POST
+@transaction.atomic
 def checkout(request):
-    if request.method == 'POST':
-        cart_items = request.POST.getlist('cart_items')
+    try:
+        # 获取当前购物车
+        cart = request.session.get('cart', {})
+        
+        if not cart:
+            return JsonResponse({'success': False, 'error': '購物車是空的'})
+
+        # 创建订单
         order = Order.objects.create(user=request.user)
 
-        for item_id in cart_items:
-            product = Product.objects.get(id=item_id)
-            OrderItem.objects.create(order=order, product=product, quantity=1)
+        total_amount = Decimal('0.00')
 
-        return redirect('success_page')  # 重定向到一个成功页面
-    return render(request, 'checkout.html')
+        # 将购物车商品转换为订单项
+        for product_id, item in cart.items():
+            product = Product.objects.get(id=product_id)
+            quantity = item['quantity']
+            price = Decimal(str(item['price']))  # 确保价格是 Decimal 类型
 
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=quantity,
+                price=price
+            )
 
-# add_to_cart函數
-# ！！！！有問題！！！！
-# 購屋車不會顯示 系統回應Not Found: /add-to-cart/
-from django.http import JsonResponse
-from .models import Product
-from django.shortcuts import get_object_or_404
+            total_amount += price * quantity
 
+        # 可以在这里更新订单的总金额（如果 Order 模型有这个字段）
+        # order.total_amount = total_amount
+        # order.save()
 
-# add_to_cart有問題 從資料庫拉 id=product_id 的資料拉不到
-# 所以會跳404
-# def add_to_cart(request):
-#     if request.method == 'POST':
-#         product_id = request.POST.get('product_id')
-#         quantity = int(request.POST.get('quantity', 1))
+        # 清空购物车
+        request.session['cart'] = {}
+        request.session.modified = True
         
-#         product = get_object_or_404(Product, id=product_id)
-        
-#         cart = request.session.get('cart', {})
-#         if product_id in cart:
-#             cart[product_id]['quantity'] += quantity
-#         else:
-#             cart[product_id] = {
-#                 'name': product.name,
-#                 'price': product.price,
-#                 'quantity': quantity,
-#             }
-#         request.session['cart'] = cart
-        
-#         return JsonResponse({'cart': cart})
-
-        # return JsonResponse({'cart': "id"})
+        return JsonResponse({'success': True, 'message': '結帳成功', 'order_id': order.id})
+    except Product.DoesNotExist:
+        return JsonResponse({'success': False, 'error': '商品不存在'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
+    
 from decimal import Decimal
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
