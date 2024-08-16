@@ -1,14 +1,24 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登入</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/eye_movement.css' %}">
 </head>
 <body class="auth-body">
     <div class="auth-container">
+        <div class="eyes">
+            <div class="eye">
+                <div class="pupil"></div>
+            </div>
+            <div class="eye">
+                <div class="pupil"></div>
+            </div>
+        </div>
         <h2>登入</h2>
         <form method="post">
             {% csrf_token %}
@@ -17,5 +27,6 @@
         </form>
         <a href="{% url 'register' %}">註冊</a>
     </div>
+    <script src="{% static 'js/eye_movement.js' %}"></script>
 </body>
 </html>

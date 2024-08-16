@@ -17,10 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from pos_system.views import add_to_cart
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('pos_system.urls')),
-    path('add_to_cart/', add_to_cart)
+    path('add_to_cart/', add_to_cart),
 ]
 
