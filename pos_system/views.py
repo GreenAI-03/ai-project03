@@ -137,31 +137,32 @@ def sales_chart(request, period):
 
     return render(request, 'sales_chart.html', {'graphic': graphic})
 
-
-
 from django.shortcuts import render
 from .forms import BarcodeForm
 
+# 定义条码与信息的字典
+barcode_data = {
+    " ": {"Customer Name": "John Doe", "Price": "10.00 $"},
+    "1234567890": {"Customer Name": "Jane Smith", "Price": "20.00 $"},
+    # 可以继续添加更多的条码和相应的客户信息
+}
+
+# 定义处理条码的函数
+def process_barcode(barcode):
+    result = barcode_data.get(barcode)
+    if result:
+        return f"Customer Name: {result['Customer Name']} , Price: {result['Price']}"
+    else:
+        return "No product found for this barcode."
+
+# 定义处理条码扫描的视图
 def barcode_scanner(request):
     if request.method == 'POST':
         form = BarcodeForm(request.POST)
         if form.is_valid():
-            # 获取用户输入的条码
             barcode = form.cleaned_data['barcode']
-            # 在这里处理条码，例如查询数据库或调用API
-            result = process_barcode(barcode)  # 假设有一个函数处理条码
+            result = process_barcode(barcode)
             return render(request, 'barcode_scanner.html', {'form': form, 'result': result})
     else:
         form = BarcodeForm()
     return render(request, 'barcode_scanner.html', {'form': form})
-
-from .models import Sale, Product, Customer, Purchase
-
-def process_barcode(barcode):
-    # 这是一个简单的示例，实际功能可能包括数据库查询或API调用
-    if barcode == " ":
-        return "Customer Name: , Price: $10.00"
-    else:
-        return "No product found for this barcode."
-
-

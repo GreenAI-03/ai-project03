@@ -6,14 +6,12 @@
 </head>
 <body>
     <h1>Barcode Scanner</h1>
-    <!-- 显示表单 -->
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Scan</button>
     </form>
 
-    <!-- 显示扫描结果 -->
     {% if result %}
         <h2>Scan Result</h2>
         <p>{{ result }}</p>
