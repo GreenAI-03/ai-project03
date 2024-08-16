@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import barcode_scanner
 
 urlpatterns = [
     path('', views.index, name='index'), 
@@ -9,4 +10,5 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('add-to-cart/', views.add_to_cart, name='add_to_cart'),
     path('sales/<str:period>/', views.sales_chart, name='sales_chart'),
+    path('scan/', barcode_scanner, name='barcode_scanner'),
 ]

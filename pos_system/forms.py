@@ -49,3 +49,12 @@ class CustomUserCreationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class BarcodeForm(forms.Form):
+  #定義輸入條碼的函式
+      barcode = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'placeholder': 'Scan or Enter Barcode'})
+    )
+

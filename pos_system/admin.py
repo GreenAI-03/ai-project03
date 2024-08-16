@@ -18,15 +18,15 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     
 class SaleAdmin(admin.ModelAdmin):
-    list_display = ('product_class', 'product_name', 'quantity', 'unit_price', 'sale_date', 'total_price', )
-    list_filter = ('sale_date', 'product_class', 'product_name', ) 
-    search_fields = ('product_name', 'sale_date', 'product_class',  'unit_price',)
+    list_display = ('product_category', 'product', 'quantity', 'unit_price', 'sale_date', 'total_price', )
+    list_filter = ('sale_date', 'product_category', 'product', ) 
+    search_fields = ('product', 'sale_date', 'product_category',  'unit_price',)
     
 admin.site.register(Sale, SaleAdmin)
 
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'phone_number', 'e_invoice_carrier', 'created_at')
-    search_fields = ('e_invoice_carrier', 'name', 'email', 'phone_number')
-    list_filter = ('created_at','phone_number', 'e_invoice_carrier',)
+    list_display = ('customer_name', 'email', 'phone_number', 'phone_barcode', 'created_at', 'birthday')
+    search_fields = ('phone_barcode', 'customer_name', 'email', 'phone_number', 'birthday')
+    list_filter = ('created_at','phone_number', 'phone_barcode', 'birthday')
 
 admin.site.register(Customer, CustomerAdmin)

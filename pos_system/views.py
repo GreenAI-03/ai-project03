@@ -1,9 +1,10 @@
-from .models import Category, Product, Sale
+from .models import Category, Product, Sale, OrderItem, Order
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, BarcodeForm
 from django.http import JsonResponse
+import json
 
 def index(request):
     if not request.user.is_authenticated:
@@ -50,10 +51,7 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-import json
-from django.shortcuts import render
-from django.http import JsonResponse
-from .models import Product, Sale, OrderItem, Order
+
 
 def checkout(request):
     if request.method == 'POST':
@@ -104,7 +102,7 @@ def get_sales_data(time_delta):
     return sales
 
 def sales_chart(request, period):
-    if period == 'daily':
+    if period == 'Daily':
         delta = timedelta(days=1)
     elif period == 'weekly':
         delta = timedelta(weeks=1)
@@ -139,10 +137,31 @@ def sales_chart(request, period):
 
     return render(request, 'sales_chart.html', {'graphic': graphic})
 
-from django.shortcuts import render, get_object_or_404
-from .models import Customer
 
-def recent_sales(request, e_invoice_carrier):
-    customer = get_object_or_404(Customer, e_invoice_carrier=e_invoice_carrier)
-    recent_sales = customer.sales.order_by('-sale_date')[:5]  # 最近五筆記錄
-    return render(request, 'recent_sales.html', {'customer': customer, 'recent_sales': recent_sales})
+
+from django.shortcuts import render
+from .forms import BarcodeForm
+
+def barcode_scanner(request):
+    if request.method == 'POST':
+        form = BarcodeForm(request.POST)
+        if form.is_valid():
+            # 获取用户输入的条码
+            barcode = form.cleaned_data['barcode']
+            # 在这里处理条码，例如查询数据库或调用API
+            result = process_barcode(barcode)  # 假设有一个函数处理条码
+            return render(request, 'barcode_scanner.html', {'form': form, 'result': result})
+    else:
+        form = BarcodeForm()
+    return render(request, 'barcode_scanner.html', {'form': form})
+
+from .models import Sale, Product, Customer, Purchase
+
+def process_barcode(barcode):
+    # 这是一个简单的示例，实际功能可能包括数据库查询或API调用
+    if barcode == " ":
+        return "Customer Name: , Price: $10.00"
+    else:
+        return "No product found for this barcode."
+
+
