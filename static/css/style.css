@@ -1,3 +1,60 @@
+/*響應式*/
+.container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 20px;
+}
+
+.item {
+  width: 45%; /* 使用百分比来设置宽度 */
+  padding: 20px;
+  background-color: #444;
+  color: #fff;
+  margin: 10px;
+  box-sizing: border-box;
+}
+
+/* 媒体查询：在更小的屏幕上将宽度设置为100% */
+@media (max-width: 768px) {
+  .item {
+    width: 100%;
+  }
+}
+/*另一種響應式
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 20px;
+}
+
+.item {
+  background-color: #1f65da;
+  color: white;
+  padding: 20px;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .item {
+    font-size: 1rem;  小屏幕上减少字体大小 
+    flex: 1 1 100%;  每个项目占据100%的宽度 */
+
+/*響應式*/
+
+/*滑鼠游標*/
+html, body, * {
+  cursor: url('https://cur.cursors-4u.net/smilies/images1/smi52.gif') 30 30, default;
+}
+a, button, input, select, textarea, div[role="button"], iframe {
+  cursor: url('https://cur.cursors-4u.net/smilies/images1/smi52.gif') 30 30, default;
+}
+* {
+  cursor: url('https://cur.cursors-4u.net/smilies/images1/smi52.gif') 30 30, default;
+}
+
+/*滑鼠游標*/
+
 /* style.css */
 body,
 html {
@@ -9,6 +66,55 @@ html {
   height: 100%;
   background-color: #f4f4f4;
 }
+
+
+/*頁面下方海洋*/
+/* for the pen */
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background-color: #f2f2f2;
+}
+
+/* waves */
+.ocean {
+  height: 40px; /* change the height of the waves here */
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-x: hidden;
+}
+
+.wave {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 88.7'%3E%3Cpath d='M800 56.9c-155.5 0-204.9-50-405.5-49.9-200 0-250 49.9-394.5 49.9v31.8h800v-.2-31.6z' fill='%23003F7C'/%3E%3C/svg%3E");
+  position: absolute;
+  width: 200%;
+  height: 100%;
+  animation: wave 10s -3s linear infinite;
+  transform: translate3d(10, 10, 10);
+  opacity: 0.8;
+}
+
+.wave:nth-of-type(2) {
+  bottom: 0;
+  animation: wave 18s linear reverse infinite;
+  opacity: 0.5;
+}
+
+.wave:nth-of-type(3) {
+  bottom: 0;
+  animation: wave 20s -1s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes wave {
+    0% {transform: translateX(0);}
+    50% {transform: translateX(-25%);}
+    100% {transform: translateX(-50%);}
+}
+/*頁面下方海洋*/
 
 header {
   background: #00b4fc;
@@ -25,7 +131,7 @@ h1 {
 .container {
   display: flex;
   flex: 1;
-  height: calc(100vh - 60px); /* 60px is the height of the header */
+  height: calc(91.4vh - 50px); /* 60px is the height of the header */
 }
 
 nav {
@@ -38,6 +144,20 @@ nav {
   overflow: auto;
   flex-shrink: 0;
 }
+/*右側結賬欄位置設定*/
+nav2 {
+  width: 200px;
+  background: #baeef400;
+  color: #fff;
+  padding: 0 px;
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  flex-shrink: 0;
+  -o-box-align: center;
+  align-items: center;
+}
+/*右側結賬欄位置設定*/
 
 .profile {
   text-align: center;
@@ -178,7 +298,7 @@ p {
 }
 
 .auth-container {
-  background-color: #fff;
+  background-color: #ffffff13;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -204,7 +324,7 @@ p {
 
 .auth-container form button {
   padding: 0.5rem;
-  background-color: #1f65da;
+  background-color: #1f64da5b;
   color: white;
   border: none;
   border-radius: 4px;
@@ -230,7 +350,48 @@ p {
 /* 將 header 分為左邊和右邊 */
 .header-left {
   float: left;
+  background-color: #1f64da00;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 16px;
 }
+/* 將 POS SYSTEM 美化 */
+.header-left body {
+  margin: 0;
+  background: #1e90ff;
+  height: 100vh;
+  display: -ms-flexbox;
+  display: box;
+  display: flex;
+  -o-box-pack: center;
+  justify-content: center;
+  -o-box-align: center;
+  align-items: center;
+}
+.header-left button {
+  background-color: #ffffff00;
+  border: 0;
+  outline: 0;
+  padding: 0.2rem 0.4rem;
+  font-size: 1.9rem;
+  font-family: monospace;
+  box-shadow: 0px 5px 10px #0058ab00;
+  transition: all 1s;
+  cursor: pointer;
+  border-radius: 5px;
+  border-bottom: 4px solid #0057ab;
+}
+.header-left button:hover {
+  box-shadow: 0px 5px 10px -5px #0057ab;
+  transform: scale(1.33);
+}
+.header-left button:active {
+  box-shadow: 0px 4px 8px #0065c8;
+  transform: scale(0.98);
+}
+/* 將 POS SYSTEM 美化 */
 
 .header-right {
   float: right;
@@ -301,8 +462,174 @@ p {
 }
 
 .cart-section {
-  width: 33.3%;
-  background-color: #f5f5f5;
+  width: 70%;
+  background-color: #f5f5f501;
   padding: 20px;
-  border-left: 1px solid #ddd;
+  border-left: 1px solid #dddddd00;
 }
+/* 
+width: 33.3%;
+設置.cart-section元素的寬度為其父容器寬度的33.3%。這通常用於將元素寬度設置為父容器的某個百分比，以便佔據該容器的特定比例。
+
+background-color: #f5f5f5;
+設置.cart-section元素的背景顏色為#f5f5f5，一種非常淺的灰色，通常用來提供與周圍內容的輕微對比。
+
+padding: 20px;
+設置.cart-section元素的內邊距為20像素，使得元素內容與其邊界之間保持一定的距離，從而讓內容更易閱讀，並提升整體視覺效果。
+
+border-left: 1px solid #ddd;
+為.cart-section元素的左邊添加一條1像素寬、顏色為#ddd（淺灰色）的實線邊框。這通常用來在頁面布局中分隔不同的區域，使視覺上更具結構性。
+*/
+/* 登出按鈕 */
+
+
+.coolBeans {
+  border: 2px solid currentColor;
+  border-radius: 3rem;
+  color: rgb(192, 189, 26);
+  font-family: roboto;
+  font-size: 4rem;
+  font-weight: 100;
+  overflow: hidden;
+  padding: 1rem 2rem;
+  position: relative;
+  text-decoration: none;
+  transition: 0.2s transform ease-in-out;
+  will-change: transform;
+  z-index: 0;
+}
+.coolBeans::after {
+  background-color: rgb(170, 22, 22);
+  border-radius: 3rem;
+  content: '';
+  display: block;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-100%, 0) rotate(10deg);
+  transform-origin: top left;
+  transition: 0.2s transform ease-out;
+  will-change: transform;
+  z-index: -1;
+}
+.coolBeans:hover::after {
+  transform: translate(0, 0);
+}
+.coolBeans:hover {
+  border: 2px solid transparent;
+  color: #faf061;
+  transform: scale(1.05);
+  will-change: transform;
+}
+  /* 登出按鈕 */
+
+  /* 未使用時魔幻漸層色減緩色衰*/
+  @property --rotate {
+    syntax: "<angle>";
+    initial-value: 132deg;
+    inherits: false;
+  }
+
+  :root {
+    --card-height: repeat(auto-fit, minmax(200px, 1fr));
+    --card-width: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+
+  .card {
+    background: #38a6d1;
+    height: calc(100% - 10px); /* 例如，為卡片減去10px的高度，以考慮填充或邊距 */
+    box-sizing: border-box;
+    padding: 5px;
+    
+    position: relative;
+    border-radius: 6px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    font-size: 0.1em;
+    color: #38a6d1;
+    cursor: pointer;
+    font-family: cursive;
+  }
+
+ 
+  
+  .card:hover {
+    color: rgb(88 199 250 / 100%);
+    transition: color 1s;
+  }
+  .card:hover:before, .card:hover:after {
+    animation: none;
+    opacity: 0;
+    z-index: -1;
+  }
+  
+    
+  /* .card::after {
+    position: absolute;
+    content: "";
+    top: calc(var(--card-height) / 6);
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+    margin: 0 auto;
+    transform: scale(1.0);
+    filter: blur(calc(var(--card-height) / 6));
+    background-image: linear-gradient(
+      var(--rotate)
+      , #5ddcff, #89d9f8 43%, #b991f7);
+      opacity: 1;
+    transition: opacity 1.0s;
+    animation: spin 1.5s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% {
+      --rotate: 0deg;
+    }
+    100% {
+      --rotate: 360deg;
+    }
+  }
+   */
+  a {
+    color: #212534;
+    text-decoration: none;
+    font-family: sans-serif;
+    font-weight: bold;
+    margin-top: 2rem;
+  }
+  /* 未使用時魔幻漸層色減緩色衰*/
+
+  /*--最外面一个div的样式*/
+  
+    .account {
+      height: 300px;
+      width: 550px;
+      border: 1px solid #000000;
+      border-radius: 50px;
+      margin-right: auto;
+      margin-left: auto;
+      margin-top: 200px;
+      padding: 20px 60px;
+      box-shadow: 5px 5px 5px 5px #233;
+    }
+    /*--用户登录标题设置*/
+    .account h2 {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: #1ff;
+    }
+    /*--背景圖設置*/
+    body {
+      background-image: url("https://s1.aigei.com/src/img/gif/e9/e9fb610404e5498aa5ad7f188d1a5eff.gif?e=1735488000&token=P7S2Xpzfz11vAkASLTkfHN7Fw-oOZBecqeJaxypL:mPeIS8BABwBQEvrDvcB6VYJ3G68=");
+      background-size: cover;
+      background-attachment: fixed;
+    }
