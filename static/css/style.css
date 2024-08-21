@@ -551,7 +551,7 @@ border-left: 1px solid #ddd;
     text-align: center;
     display: flex;
     font-size: 0.1em;
-    color: rgb(88 199 250 / 0%);
+    color: #38a6d1;
     cursor: pointer;
     font-family: cursive;
   }
@@ -569,7 +569,7 @@ border-left: 1px solid #ddd;
   }
   
     
-  .card::after {
+  /* .card::after {
     position: absolute;
     content: "";
     top: calc(var(--card-height) / 6);
@@ -597,7 +597,7 @@ border-left: 1px solid #ddd;
       --rotate: 360deg;
     }
   }
-  
+   */
   a {
     color: #212534;
     text-decoration: none;
