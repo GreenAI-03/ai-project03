@@ -10,25 +10,40 @@
 </head>
 <body>
     <header>
-      {% block title %} POS SYSTEM {% endblock %}
+      <div class="header-left">
+        <button> POS SYSTEM </button>   <!--將 POS SYSTEM 美化-->
+      </div>
       <div class="header-right">
         <form action="{% url 'logout' %}" method="post">
             {% csrf_token %}
-            <button type="submit">登出</button>
+            <button type="submit" class="coolBeans">登出</button>
         </form>
     </div>
     </header>
-    <div class="container">
-      <nav>
-        <ul>
-          {% for category in categories %}
-            <li>
-              <a href="#category{{ category.id }}" onclick="showSection('category{{ category.id }}')">{{ category.name }}</a>
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
-      <main>
+    <!--頁面上層漸層色(未使用實漸層色減緩色衰)及右測連結(可設定連結官方)-->
+    <div class="card">
+      <a href="https://www.iciil.nchu.edu.tw/" target="_blank">官方聯絡</a>
+    <!--頁面上層漸層色-->
+      <div class="container">
+       <nav>
+         <ul>
+           {% for category in categories %}
+              <li>
+               <a href="#category{{ category.id }}" onclick="showSection('category{{ category.id }}')">{{ category.name }}</a>
+             </li>
+           {% endfor %}
+          </ul>
+        </nav>
+       <main>
+        
+        <!--頁面下方海洋-->
+        <div class="ocean">
+          <div class="wave"></div>
+          <div class="wave"></div>
+          <div class="wave"></div>
+        </div>
+        <!--頁面下方海洋-->
+      
         {% for category in categories %}
           <section id="category{{ category.id }}" class="content-section">
             <h2>{{ category.name }}</h2>
@@ -50,7 +65,24 @@
             </div>
           </section>
         {% endfor %}
+<<<<<<< HEAD
       </main>
+=======
+       </main>
+       <!-- Right Sidebar -->
+        <!-- 購物車右側列表 -->
+        <div class="header-right">
+        <div class="container">
+          <nav2><!-- 右側結賬欄位置設定 -->
+           <div class="cart-section">
+            <h2>購物車</h2>
+             <div id="cart-items">
+             <!-- Cart items will be dynamically added here -->
+             </div>
+             <button onclick="checkout()">結帳</button>
+           </div>
+          </nav2>
+>>>>>>> origin/UI/UX
     </div>
     <div class="cart-section">
       <h2>購物車</h2>
