@@ -190,6 +190,7 @@ nav ul li {
 nav ul li a {
   color: #fff;
   text-decoration: none;
+  
 }
 
 nav ul li a:hover,
@@ -248,9 +249,12 @@ p {
 }
 
 .quantity-control {
-  display: flex;
   align-items: center;
   margin: 10px 0;
+  display: flex;              /* 使用 Flexbox 布局 */
+  justify-content: center;    /* 水平居中 */
+  align-items: center;        /* 垂直居中 */
+  height: 100%;               /* 容器高度（可根据需要调整） */
 }
 
 .quantity-control button {
@@ -262,6 +266,7 @@ p {
   cursor: pointer;
   font-size: 1.2em;
   width: 40px;
+
 }
 
 .quantity-control button:hover {
