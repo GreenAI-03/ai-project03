@@ -1,0 +1,118 @@
+
+<h2>統計數據</h2>
+
+<!-- 日營收折線圖 -->
+<div>
+    <h3>日營收</h3>
+    <canvas id="dailyRevenueChart"></canvas>
+</div>
+
+<!-- 每週最熱門商品長條圖 -->
+<div>
+    <h3>每週最熱門商品</h3>
+    <canvas id="mostPopularProductsChart"></canvas>
+</div>
+
+<!-- 每週最不熱門商品長條圖 -->
+<div>
+    <h3>每週最不熱門商品</h3>
+    <canvas id="leastPopularProductsChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 獲取後端傳來的數據
+    const dailyRevenue = {{ daily_revenue|default:0 }};
+    const mostPopularProducts = {{ most_popular_products|safe }};
+    const leastPopularProducts = {{ least_popular_products|safe }};
+
+    // 日營收折線圖
+    new Chart(document.getElementById('dailyRevenueChart'), {
+        type: 'line',
+        data: {
+            labels: ['今日'],
+            datasets: [{
+                label: '日營收',
+                data: [dailyRevenue],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // 每週最熱門商品長條圖
+    new Chart(document.getElementById('mostPopularProductsChart'), {
+        type: 'bar',
+        data: {
+            labels: mostPopularProducts.map(item => item.product_name),
+            datasets: [{
+                label: '週銷量',
+                data: mostPopularProducts.map(item => item.total_quantity),
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // 每週最不熱門商品長條圖
+    new Chart(document.getElementById('leastPopularProductsChart'), {
+        type: 'bar',
+        data: {
+            labels: leastPopularProducts.map(item => item.product_name),
+            datasets: [{
+                label: '週銷量',
+                data: leastPopularProducts.map(item => item.total_quantity),
+                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+<h1>統計報表</h1>
+
+<p>今日總營收: {{ daily_revenue }}</p>
+
+<h2>本週最熱門商品</h2>
+<ul>
+    {% for product in most_popular_products %}
+        <li>{{ product.product__name }}: {{ product.total_quantity }}</li>
+    {% empty %}
+        <li>無數據</li>
+    {% endfor %}
+</ul>
+
+<h2>本週最不熱門商品</h2>
+<ul>
+    {% for product in least_popular_products %}
+        <li>{{ product.product__name }}: {{ product.total_quantity }}</li>
+    {% empty %}
+        <li>無數據</li>
+    {% endfor %}
+</ul>

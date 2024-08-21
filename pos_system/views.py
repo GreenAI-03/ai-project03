@@ -57,13 +57,11 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Product, Sale, OrderItem, Order
 
-# ！！！！有問題！！！！
-# 點擊結帳後導向有問題
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from django.db import transaction
-from .models import Order, OrderItem, Product
+from django.views.decorators.http import require_POST
+from .models import Order, OrderItem, Product, Sale
 from decimal import Decimal
+from django.http import JsonResponse
 
 @require_POST
 @transaction.atomic
@@ -93,11 +91,14 @@ def checkout(request):
                 price=price
             )
 
-            total_amount += price * quantity
+            # 创建 Sale 记录
+            Sale.objects.create(
+                product=product,
+                quantity=quantity,
+                sale_date=order.created_at  # 使用订单创建时间作为销售时间
+            )
 
-        # 可以在这里更新订单的总金额（如果 Order 模型有这个字段）
-        # order.total_amount = total_amount
-        # order.save()
+            total_amount += price * quantity
 
         # 清空购物车
         request.session['cart'] = {}
@@ -108,6 +109,7 @@ def checkout(request):
         return JsonResponse({'success': False, 'error': '商品不存在'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
     
     
 from decimal import Decimal
@@ -135,4 +137,43 @@ def add_to_cart(request):
         request.session['cart'] = cart
 
         return JsonResponse({'cart': cart})
+    
+from django.utils import timezone
+from django.db.models import Sum
+from django.shortcuts import render
+from .models import Sale, Product
+import datetime
 
+def statistics_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    # 計算日營收
+    today = timezone.now().date()
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+    end_of_week = start_of_week + datetime.timedelta(days=6)
+
+    # 使用 aggregation 方法來計算總營收
+    sales_today = Sale.objects.filter(sale_date__date=today)
+    daily_revenue = sales_today.aggregate(
+        total=Sum('quantity') * Sum('product__price')
+    )['total'] or 0
+
+    # 計算每週熱門商品
+    weekly_sales = Sale.objects.filter(sale_date__date__range=[start_of_week, end_of_week])
+    most_popular_products = weekly_sales.values('product__name').annotate(
+        total_quantity=Sum('quantity')
+    ).order_by('-total_quantity')
+
+    # 計算每週不熱門商品
+    least_popular_products = weekly_sales.values('product__name').annotate(
+        total_quantity=Sum('quantity')
+    ).order_by('total_quantity')
+
+    context = {
+        'daily_revenue': daily_revenue,
+        'most_popular_products': most_popular_products,
+        'least_popular_products': least_popular_products,
+    }
+    
+    return render(request, 'pos_system/statistics.html', context)
