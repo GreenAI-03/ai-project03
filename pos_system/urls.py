@@ -9,4 +9,5 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('add-to-cart/', views.add_to_cart, name='add_to_cart'),
     path('statistics/', views.statistics_view, name='statistics'),  # 新增統計頁面
+    path('get-chart-data/', views.get_chart_data, name='get_chart_data'),
 ]

@@ -67,22 +67,19 @@ from django.http import JsonResponse
 @transaction.atomic
 def checkout(request):
     try:
-        # 获取当前购物车
         cart = request.session.get('cart', {})
         
         if not cart:
             return JsonResponse({'success': False, 'error': '購物車是空的'})
 
-        # 创建订单
         order = Order.objects.create(user=request.user)
 
         total_amount = Decimal('0.00')
 
-        # 将购物车商品转换为订单项
         for product_id, item in cart.items():
             product = Product.objects.get(id=product_id)
             quantity = item['quantity']
-            price = Decimal(str(item['price']))  # 确保价格是 Decimal 类型
+            price = Decimal(str(item['price']))  
 
             OrderItem.objects.create(
                 order=order,
@@ -91,16 +88,15 @@ def checkout(request):
                 price=price
             )
 
-            # 创建 Sale 记录
             Sale.objects.create(
                 product=product,
                 quantity=quantity,
-                sale_date=order.created_at  # 使用订单创建时间作为销售时间
+                sale_date=order.created_at  
             )
 
             total_amount += price * quantity
 
-        # 清空购物车
+
         request.session['cart'] = {}
         request.session.modified = True
         
@@ -177,3 +173,42 @@ def statistics_view(request):
     }
     
     return render(request, 'pos_system/statistics.html', context)
+
+
+from django.http import JsonResponse
+from .models import Sale
+from django.db.models import Sum
+from django.utils import timezone  # 导入 timezone
+from datetime import timedelta
+
+def get_chart_data(request):
+    today = timezone.now().date()  # 使用 timezone.now() 获取当前日期
+    week_ago = today - timedelta(days=7)
+
+    # 日营收数据
+    revenue_data = []
+    revenue_labels = []
+    for i in range(7):
+        day = week_ago + timedelta(days=i)
+        total_revenue = Sale.objects.filter(sale_date__date=day).aggregate(Sum('quantity'))['quantity__sum'] or 0
+        revenue_data.append(total_revenue)
+        revenue_labels.append(day.strftime('%Y-%m-%d'))
+
+    # 最热门商品数据
+    popular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('-total_quantity')[:5]
+    popular_products_labels = [sale['product__name'] for sale in popular_sales]
+    popular_products_data = [sale['total_quantity'] for sale in popular_sales]
+
+    # 最不热门商品数据
+    unpopular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('total_quantity')[:5]
+    unpopular_products_labels = [sale['product__name'] for sale in unpopular_sales]
+    unpopular_products_data = [sale['total_quantity'] for sale in unpopular_sales]
+
+    return JsonResponse({
+        'revenue_labels': revenue_labels,
+        'revenue_data': revenue_data,
+        'popular_products_labels': popular_products_labels,
+        'popular_products_data': popular_products_data,
+        'unpopular_products_labels': unpopular_products_labels,
+        'unpopular_products_data': unpopular_products_data
+    })
