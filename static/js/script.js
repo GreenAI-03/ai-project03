@@ -126,3 +126,95 @@ function handleCheckout(event) {
 
 // 全局变量
 var cart = [];
+
+document.addEventListener("DOMContentLoaded", function () {
+  // 通过AJAX获取图表数据
+  fetch("/get-chart-data/")
+    .then((response) => response.json())
+    .then((data) => {
+      // 处理日营收的折线图
+      const revenueCtx = document
+        .getElementById("revenueChart")
+        .getContext("2d");
+      new Chart(revenueCtx, {
+        type: "line",
+        data: {
+          labels: data.revenue_labels,
+          datasets: [
+            {
+              label: "每日營收",
+              data: data.revenue_data,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      // 处理最热门商品的柱状图
+      const popularCtx = document
+        .getElementById("popularProductsChart")
+        .getContext("2d");
+      new Chart(popularCtx, {
+        type: "bar",
+        data: {
+          labels: data.popular_products_labels,
+          datasets: [
+            {
+              label: "最熱門商品週銷量",
+              data: data.popular_products_data,
+              backgroundColor: "rgba(255, 99, 132, 0.2)",
+              borderColor: "rgba(255, 99, 132, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+
+      // 处理最不热门商品的柱状图
+      const unpopularCtx = document
+        .getElementById("unpopularProductsChart")
+        .getContext("2d");
+      new Chart(unpopularCtx, {
+        type: "bar",
+        data: {
+          labels: data.unpopular_products_labels,
+          datasets: [
+            {
+              label: "最不熱門商品週銷量",
+              data: data.unpopular_products_data,
+              backgroundColor: "rgba(54, 162, 235, 0.2)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+    })
+    .catch((error) => console.error("Error fetching chart data:", error));
+});

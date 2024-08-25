@@ -57,34 +57,29 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Product, Sale, OrderItem, Order
 
-# ！！！！有問題！！！！
-# 點擊結帳後導向有問題
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
 from django.db import transaction
-from .models import Order, OrderItem, Product
+from django.views.decorators.http import require_POST
+from .models import Order, OrderItem, Product, Sale
 from decimal import Decimal
+from django.http import JsonResponse
 
 @require_POST
 @transaction.atomic
 def checkout(request):
     try:
-        # 获取当前购物车
         cart = request.session.get('cart', {})
         
         if not cart:
             return JsonResponse({'success': False, 'error': '購物車是空的'})
 
-        # 创建订单
         order = Order.objects.create(user=request.user)
 
         total_amount = Decimal('0.00')
 
-        # 将购物车商品转换为订单项
         for product_id, item in cart.items():
             product = Product.objects.get(id=product_id)
             quantity = item['quantity']
-            price = Decimal(str(item['price']))  # 确保价格是 Decimal 类型
+            price = Decimal(str(item['price']))  
 
             OrderItem.objects.create(
                 order=order,
@@ -93,13 +88,15 @@ def checkout(request):
                 price=price
             )
 
+            Sale.objects.create(
+                product=product,
+                quantity=quantity,
+                sale_date=order.created_at  
+            )
+
             total_amount += price * quantity
 
-        # 可以在这里更新订单的总金额（如果 Order 模型有这个字段）
-        # order.total_amount = total_amount
-        # order.save()
 
-        # 清空购物车
         request.session['cart'] = {}
         request.session.modified = True
         
@@ -108,6 +105,7 @@ def checkout(request):
         return JsonResponse({'success': False, 'error': '商品不存在'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
     
     
 from decimal import Decimal
@@ -135,4 +133,82 @@ def add_to_cart(request):
         request.session['cart'] = cart
 
         return JsonResponse({'cart': cart})
+    
+from django.utils import timezone
+from django.db.models import Sum
+from django.shortcuts import render
+from .models import Sale, Product
+import datetime
 
+def statistics_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    # 計算日營收
+    today = timezone.now().date()
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+    end_of_week = start_of_week + datetime.timedelta(days=6)
+
+    # 使用 aggregation 方法來計算總營收
+    sales_today = Sale.objects.filter(sale_date__date=today)
+    daily_revenue = sales_today.aggregate(
+        total=Sum('quantity') * Sum('product__price')
+    )['total'] or 0
+
+    # 計算每週熱門商品
+    weekly_sales = Sale.objects.filter(sale_date__date__range=[start_of_week, end_of_week])
+    most_popular_products = weekly_sales.values('product__name').annotate(
+        total_quantity=Sum('quantity')
+    ).order_by('-total_quantity')
+
+    # 計算每週不熱門商品
+    least_popular_products = weekly_sales.values('product__name').annotate(
+        total_quantity=Sum('quantity')
+    ).order_by('total_quantity')
+
+    context = {
+        'daily_revenue': daily_revenue,
+        'most_popular_products': most_popular_products,
+        'least_popular_products': least_popular_products,
+    }
+    
+    return render(request, 'pos_system/statistics.html', context)
+
+
+from django.http import JsonResponse
+from .models import Sale
+from django.db.models import Sum
+from django.utils import timezone  # 导入 timezone
+from datetime import timedelta
+
+def get_chart_data(request):
+    today = timezone.now().date()  # 使用 timezone.now() 获取当前日期
+    week_ago = today - timedelta(days=7)
+
+    # 日营收数据
+    revenue_data = []
+    revenue_labels = []
+    for i in range(7):
+        day = week_ago + timedelta(days=i)
+        total_revenue = Sale.objects.filter(sale_date__date=day).aggregate(Sum('quantity'))['quantity__sum'] or 0
+        revenue_data.append(total_revenue)
+        revenue_labels.append(day.strftime('%Y-%m-%d'))
+
+    # 最热门商品数据
+    popular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('-total_quantity')[:5]
+    popular_products_labels = [sale['product__name'] for sale in popular_sales]
+    popular_products_data = [sale['total_quantity'] for sale in popular_sales]
+
+    # 最不热门商品数据
+    unpopular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('total_quantity')[:5]
+    unpopular_products_labels = [sale['product__name'] for sale in unpopular_sales]
+    unpopular_products_data = [sale['total_quantity'] for sale in unpopular_sales]
+
+    return JsonResponse({
+        'revenue_labels': revenue_labels,
+        'revenue_data': revenue_data,
+        'popular_products_labels': popular_products_labels,
+        'popular_products_data': popular_products_data,
+        'unpopular_products_labels': unpopular_products_labels,
+        'unpopular_products_data': unpopular_products_data
+    })
