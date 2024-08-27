@@ -87,6 +87,13 @@
                         }
                     }
                 });
+                                // 顯示最常見商品組合
+                const list = document.getElementById('bestCombinationsList');
+                data.best_combinations_labels.forEach((label, index) => {
+                    const li = document.createElement('li');
+                        li.textContent = `${label}: ${data.best_combinations_data[index]} times`;
+                        list.appendChild(li);
+                    });
             });
     </script>
     
@@ -94,6 +101,9 @@
     <h1>統計報表</h1>
     
     <p>今日總營收: {{ daily_revenue }}</p>
+
+    <h2>最佳商品組合</h2>
+    <ul id="bestCombinationsList"></ul>
     
     <h2>本週最熱門商品</h2>
     <ul>

@@ -176,10 +176,10 @@ def statistics_view(request):
 
 
 from django.http import JsonResponse
-from .models import Sale
-from django.db.models import Sum
-from django.utils import timezone  # 导入 timezone
+from django.utils import timezone
 from datetime import timedelta
+from django.db.models import Sum, Count
+from .models import Sale, Order, OrderItem
 
 def get_chart_data(request):
     today = timezone.now().date()  # 使用 timezone.now() 获取当前日期
@@ -204,11 +204,32 @@ def get_chart_data(request):
     unpopular_products_labels = [sale['product__name'] for sale in unpopular_sales]
     unpopular_products_data = [sale['total_quantity'] for sale in unpopular_sales]
 
+    # 找出最多人同時結帳的商品組合
+    from itertools import combinations
+    from collections import Counter
+
+    # 先找到所有訂單中的商品組合
+    all_combinations = []
+    for order in Order.objects.filter(created_at__gte=week_ago):
+        items = OrderItem.objects.filter(order=order).values_list('product__name', flat=True)
+        for r in range(2, len(items) + 1):  # 最小的組合數為2
+            combs = combinations(sorted(items), r)
+            all_combinations.extend(combs)
+    
+    # 統計每種組合的出現次數
+    combination_counts = Counter(all_combinations)
+    most_common_combinations = combination_counts.most_common(5)
+
+    best_combinations_labels = [' & '.join(comb) for comb, _ in most_common_combinations]
+    best_combinations_data = [count for _, count in most_common_combinations]
+
     return JsonResponse({
         'revenue_labels': revenue_labels,
         'revenue_data': revenue_data,
         'popular_products_labels': popular_products_labels,
         'popular_products_data': popular_products_data,
         'unpopular_products_labels': unpopular_products_labels,
-        'unpopular_products_data': unpopular_products_data
+        'unpopular_products_data': unpopular_products_data,
+        'best_combinations_labels': best_combinations_labels,
+        'best_combinations_data': best_combinations_data,
     })
