@@ -121,7 +121,7 @@ STATIC_ROOT = BASE_DIR / 'public/assets'
 STATICFILES_DIRS = [
     BASE_DIR /'static'
 ]
-# 重定向未登入用戶到登入頁面
+# 重定向未登入用戶到登入頁面,查看上鎖資料時
 LOGIN_URL = '/login/'
 
 # 註冊完後重定向的頁面

@@ -324,3 +324,79 @@ def update_price(request, item_id):
             except ValueError:
                 return JsonResponse({'success': False, 'error': '無效的價格'})
     return JsonResponse({'success': False, 'error': '無效的請求'})
+#歷史訂單
+from django.shortcuts import render
+from django.db.models import Sum
+from .models import Order, OrderItem, Product
+from django.utils import timezone
+from datetime import timedelta
+from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+def is_staff(user):
+    return user.is_staff
+
+@login_required
+@user_passes_test(is_staff)
+def history_view(request):
+    # 獲取查詢參數
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
+    # 如果沒有指定日期，默認顯示最近7天的數據
+    if not start_date or not end_date:
+        end_date = timezone.now().date()
+        start_date = end_date - timedelta(days=7)
+    else:
+        start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    # 查詢指定時間段內的訂單
+    orders = Order.objects.filter(created_at__date__range=[start_date, end_date]).order_by('-created_at')
+
+    # 分頁
+    paginator = Paginator(orders, 10)  # 每頁顯示10個訂單
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 查詢指定時間段內的品項銷售數據
+    sales_data = OrderItem.objects.filter(order__created_at__date__range=[start_date, end_date]) \
+        .values('product__name') \
+        .annotate(total_quantity=Sum('quantity'), total_sales=Sum(F('quantity') * F('price'))) \
+        .order_by('-total_quantity')
+
+    # 計算時間段內的銷售總額
+    total_sales = OrderItem.objects.filter(order__created_at__date__range=[start_date, end_date]) \
+        .aggregate(total_sales=Sum(F('quantity') * F('price')))['total_sales'] or 0
+
+    # 計算各類別的銷售總額
+    category_sales = OrderItem.objects.filter(order__created_at__date__range=[start_date, end_date]) \
+        .values('product__category__name') \
+        .annotate(total_sales=Sum(F('quantity') * F('price'))) \
+        .order_by('-total_sales')
+
+    context = {
+        'page_obj': page_obj,
+        'sales_data': sales_data,
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_sales': total_sales,
+        'category_sales': category_sales,
+    }
+    return render(request, 'pos_system/history.html', context)
+
+from django.http import JsonResponse
+
+@login_required
+@user_passes_test(is_staff)
+def order_details(request, order_id):
+    order = Order.objects.get(id=order_id)
+    items = order.orderitem_set.all()
+    data = {
+        'order_id': order.id,
+        'username': order.user.username,
+        'created_at': order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        'items': [{'product_name': item.product.name, 'quantity': item.quantity, 'price': str(item.price)} for item in items],
+        'total_price': str(sum(item.price for item in items))
+    }
+    return JsonResponse(data)

@@ -1,0 +1,149 @@
+<!--歷史訂單-->
+{% extends 'pos_system/base.html' %}
+
+{% block body %}
+<h2>歷史資料查看</h2>
+
+<form method="get">
+    <label for="start_date">開始日期：</label>
+    <input type="date" id="start_date" name="start_date" value="{{ start_date|date:'Y-m-d' }}">
+    
+    <label for="end_date">結束日期：</label>
+    <input type="date" id="end_date" name="end_date" value="{{ end_date|date:'Y-m-d' }}">
+    
+    <button type="submit">查詢</button>
+</form>
+
+<h3>時間段銷售總額</h3>
+<p>從 {{ start_date|date:'Y-m-d' }} 到 {{ end_date|date:'Y-m-d' }} 的銷售總額：${{ total_sales|floatformat:2 }}</p>
+
+<h3>各類別銷售總額</h3>
+<table class="history-table">
+    <thead>
+        <tr>
+            <th>類別</th>
+            <th>銷售總額</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for category in category_sales %}
+        <tr>
+            <td>{{ category.product__category__name }}</td>
+            <td>${{ category.total_sales|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="2">沒有找到類別銷售資料</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>訂單摘要</h3>
+<table class="history-table">
+    <thead>
+        <tr>
+            <th>訂單編號</th>
+            <th>用戶</th>
+            <th>建立時間</th>
+            <th>總金額</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in page_obj %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ order.user.username }}</td>
+            <td>{{ order.created_at }}</td>
+            <td>${{ order.orderitem_set.aggregate.total_price.total_price__sum|default:0|floatformat:2 }}</td>
+            <td>
+                <button onclick="showOrderDetails({{ order.id }})">查看詳情</button>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="5">沒有找到訂單</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 分頁 -->
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}">&laquo; 第一頁</a>
+            <a href="?page={{ page_obj.previous_page_number }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}">上一頁</a>
+        {% endif %}
+
+        <span class="current">
+            第 {{ page_obj.number }} 頁，共 {{ page_obj.paginator.num_pages }} 頁
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}">下一頁</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}">最後一頁 &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+<h3>品項銷售資料</h3>
+<table class="history-table">
+    <thead>
+        <tr>
+            <th>商品名稱</th>
+            <th>總銷售數量</th>
+            <th>總銷售金額</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in sales_data %}
+        <tr>
+            <td>{{ item.product__name }}</td>
+            <td>{{ item.total_quantity }}</td>
+            <td>${{ item.total_sales|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">沒有找到銷售資料</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 訂單詳情彈窗 -->
+<div id="orderDetailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>訂單詳情</h3>
+        <div id="orderDetailsContent"></div>
+    </div>
+</div>
+
+<script>
+function showOrderDetails(orderId) {
+    // 使用 AJAX 獲取訂單詳情
+    fetch(`/order-details/${orderId}/`)
+        .then(response => response.json())
+        .then(data => {
+            let content = `<p>訂單編號：${data.order_id}</p>
+                           <p>用戶：${data.username}</p>
+                           <p>建立時間：${data.created_at}</p>
+                           <h4>訂單項目：</h4>
+                           <ul>`;
+            data.items.forEach(item => {
+                content += `<li>${item.product_name} x ${item.quantity} - $${item.price}</li>`;
+            });
+            content += `</ul><p>總金額：$${data.total_price}</p>`;
+            document.getElementById('orderDetailsContent').innerHTML = content;
+            document.getElementById('orderDetailsModal').style.display = 'block';
+        });
+}
+
+// 關閉彈窗
+document.querySelector('.close').onclick = function() {
+    document.getElementById('orderDetailsModal').style.display = 'none';
+}
+</script>
+{% endblock %}
