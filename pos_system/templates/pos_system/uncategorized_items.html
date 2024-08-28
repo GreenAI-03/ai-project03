@@ -1,0 +1,60 @@
+{% extends 'pos_system/base.html' %}
+
+{% block body %}
+<h2>未分類項目</h2>
+
+<!-- 添加上傳菜單的按鈕和表單 -->
+<div class="upload-menu">
+  <form action="{% url 'upload_menu' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="menu_image" accept="image/*" required>
+    <button type="submit">上傳菜單</button>
+  </form>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>名稱</th>
+            <th>價格</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.name }}</td>
+            <td>
+                <span id="price-{{ item.id }}">{{ item.price }}</span>
+                <input type="number" id="price-input-{{ item.id }}" value="{{ item.price }}" style="display: none;">
+                <button onclick="togglePriceEdit({{ item.id }})">編輯</button>
+                <button onclick="updatePrice({{ item.id }})" style="display: none;" id="save-price-{{ item.id }}">保存</button>
+            </td>
+            <td>
+                <form action="{% url 'move_item' item.id %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <select name="category">
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">移動</button>
+                </form>
+                <form action="{% url 'delete_item' item.id %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('確定要刪除這個項目嗎？')">刪除</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">沒有未分類的項目</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+// ... 保留之前的 JavaScript 代碼 ...
+</script>
+{% endblock %}
