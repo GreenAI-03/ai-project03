@@ -1,0 +1,22 @@
+<!--菜單上傳-->
+{% extends 'pos_system/base.html' %}
+
+{% block body %}
+<h2>選擇要添加的菜單項目</h2>
+<form method="post" action="{% url 'save_menu_items' %}">
+    {% csrf_token %}
+    {% for item in text_results %}
+        <div>
+            <input type="checkbox" name="selected_items" value="{{ item.text }}|{{ item.prob }}">
+            <label>{{ item.text }} (置信度: {{ item.prob }})</label>
+            <select name="category_{{ forloop.counter0 }}">
+                <option value="">選擇類別</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endfor %}
+    <button type="submit">保存選中項目</button>
+</form>
+{% endblock %}

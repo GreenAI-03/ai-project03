@@ -106,8 +106,6 @@ def checkout(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-    
-    
 from decimal import Decimal
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -233,3 +231,97 @@ def get_chart_data(request):
         'best_combinations_labels': best_combinations_labels,
         'best_combinations_data': best_combinations_data,
     })
+#菜單上傳
+from django.shortcuts import render, redirect
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+import os
+from .image_recognition import extract_text_from_image
+from .models import Product, Category
+
+def upload_menu(request):
+    if request.method == 'POST' and request.FILES['menu_image']:
+        menu_image = request.FILES['menu_image']
+        path = default_storage.save('tmp/menu.jpg', ContentFile(menu_image.read()))
+        tmp_file = os.path.join(settings.MEDIA_ROOT, path)
+        
+        text_results = extract_text_from_image(tmp_file)
+        
+        # 清理臨時文件
+        os.remove(tmp_file)
+        
+        # 處理辨識結果
+        uncategorized_category, _ = Category.objects.get_or_create(name='未分類')
+        for result in text_results:
+            name = result['text']
+            price = result['prob']  # 假設 prob 字段包含價格信息
+            Product.objects.create(
+                name=name,
+                price=float(price),
+                category=uncategorized_category,
+                description='從菜單圖片導入'
+            )
+        
+        return redirect('uncategorized_items')
+    return redirect('index')
+
+def save_menu_items(request):
+    if request.method == 'POST':
+        selected_items = request.POST.getlist('selected_items')
+        for i, item in enumerate(selected_items):
+            name, price = item.split('|')
+            category_id = request.POST.get(f'category_{i}')
+            
+            if category_id:
+                category = Category.objects.get(id=category_id)
+            else:
+                category, _ = Category.objects.get_or_create(name='未分類')
+            
+            Product.objects.create(
+                name=name,
+                price=float(price),
+                category=category,
+                description='從菜單圖片導入'
+            )
+        return redirect('index')  # 或者重定向到您想要的頁面
+    return redirect('upload_menu')
+
+from django.shortcuts import get_object_or_404, redirect
+
+def uncategorized_items(request):
+    uncategorized_category = Category.objects.get_or_create(name='未分類')[0]
+    items = Product.objects.filter(category=uncategorized_category)
+    categories = Category.objects.exclude(name='未分類')
+    return render(request, 'pos_system/uncategorized_items.html', {'items': items, 'categories': categories})
+
+def move_item(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(Product, id=item_id)
+        new_category_id = request.POST.get('category')
+        if new_category_id:
+            new_category = get_object_or_404(Category, id=new_category_id)
+            item.category = new_category
+            item.save()
+    return redirect('uncategorized_items')
+
+def delete_item(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(Product, id=item_id)
+        item.delete()
+    return redirect('uncategorized_items')
+
+from django.http import JsonResponse
+
+def update_price(request, item_id):
+    if request.method == 'POST':
+        item = get_object_or_404(Product, id=item_id)
+        new_price = request.POST.get('price')
+        if new_price:
+            try:
+                item.price = float(new_price)
+                item.save()
+                return JsonResponse({'success': True, 'new_price': item.price})
+            except ValueError:
+                return JsonResponse({'success': False, 'error': '無效的價格'})
+    return JsonResponse({'success': False, 'error': '無效的請求'})
