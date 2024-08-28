@@ -135,7 +135,7 @@ def add_to_cart(request):
         return JsonResponse({'cart': cart})
     
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import F,Sum
 from django.shortcuts import render
 from .models import Sale, Product
 import datetime
@@ -152,8 +152,8 @@ def statistics_view(request):
     # 使用 aggregation 方法來計算總營收
     sales_today = Sale.objects.filter(sale_date__date=today)
     daily_revenue = sales_today.aggregate(
-        total=Sum('quantity') * Sum('product__price')
-    )['total'] or 0
+        total=Sum(F('quantity') * F('product__price')
+    ))['total'] or 0
 
     # 計算每週熱門商品
     weekly_sales = Sale.objects.filter(sale_date__date__range=[start_of_week, end_of_week])
