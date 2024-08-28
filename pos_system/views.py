@@ -1,22 +1,37 @@
-from .models import Category, Product, Sale
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.shortcuts import render, redirect
-from .forms import CustomUserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.db.models import F, Sum
+from django.utils.timezone import make_aware, is_naive
+from decimal import Decimal
+from itertools import combinations
+from collections import Counter
+import datetime
+import json,pytz
+
+from .models import Category, Product, Sale, Order, OrderItem
+from .forms import CustomUserCreationForm
+
 
 def index(request):
     if not request.user.is_authenticated:
         return redirect('login')
+
     categories = Category.objects.all()
     products = Product.objects.all()
     cart = request.session.get('cart', {})
+
     context = {
         'categories': categories,
         'products': products,
         'cart': cart,
     }
     return render(request, 'pos_system/index.html', context)
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -33,6 +48,7 @@ def login_view(request):
     
     return render(request, 'pos_system/login.html', {'form': form})
 
+
 def register_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -48,38 +64,33 @@ def register_view(request):
 
     return render(request, 'pos_system/register.html', {'form': form})
 
+
 def logout_view(request):
     logout(request)
     return redirect('login')
 
-import json
-from django.shortcuts import render
-from django.http import JsonResponse
-from .models import Product, Sale, OrderItem, Order
-
-from django.db import transaction
-from django.views.decorators.http import require_POST
-from .models import Order, OrderItem, Product, Sale
-from decimal import Decimal
-from django.http import JsonResponse
 
 @require_POST
 @transaction.atomic
 def checkout(request):
+    now = timezone.localtime(timezone.now())
+    print(f"Checkout time: {now}")  # 输出当前时间到日志或控制台
     try:
         cart = request.session.get('cart', {})
         
         if not cart:
             return JsonResponse({'success': False, 'error': '購物車是空的'})
 
-        order = Order.objects.create(user=request.user)
+        # 将当前时间转换为台湾时区并设置为订单创建时间
+        now = timezone.localtime(timezone.now())
+        order = Order.objects.create(user=request.user, created_at=now)
 
         total_amount = Decimal('0.00')
 
         for product_id, item in cart.items():
             product = Product.objects.get(id=product_id)
             quantity = item['quantity']
-            price = Decimal(str(item['price']))  
+            price = Decimal(str(item['price']))
 
             OrderItem.objects.create(
                 order=order,
@@ -91,11 +102,10 @@ def checkout(request):
             Sale.objects.create(
                 product=product,
                 quantity=quantity,
-                sale_date=order.created_at  
+                sale_date=order.created_at  # 使用已確認的時區感知时间
             )
 
             total_amount += price * quantity
-
 
         request.session['cart'] = {}
         request.session.modified = True
@@ -105,12 +115,6 @@ def checkout(request):
         return JsonResponse({'success': False, 'error': '商品不存在'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
-
-    
-    
-from decimal import Decimal
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 
 def add_to_cart(request):
     if request.method == 'POST':
@@ -133,12 +137,7 @@ def add_to_cart(request):
         request.session['cart'] = cart
 
         return JsonResponse({'cart': cart})
-    
-from django.utils import timezone
-from django.db.models import F,Sum
-from django.shortcuts import render
-from .models import Sale, Product
-import datetime
+
 
 def statistics_view(request):
     if not request.user.is_authenticated:
@@ -149,14 +148,18 @@ def statistics_view(request):
     start_of_week = today - datetime.timedelta(days=today.weekday())
     end_of_week = start_of_week + datetime.timedelta(days=6)
 
+    # 確保 start_of_week 和 end_of_week 是時區感知的 datetime
+    start_of_week = make_aware(datetime.datetime.combine(start_of_week, datetime.time.min))
+    end_of_week = make_aware(datetime.datetime.combine(end_of_week, datetime.time.max))
+
     # 使用 aggregation 方法來計算總營收
     sales_today = Sale.objects.filter(sale_date__date=today)
     daily_revenue = sales_today.aggregate(
-        total=Sum(F('quantity') * F('product__price')
-    ))['total'] or 0
+        total=Sum(F('quantity') * F('product__price'))
+    )['total'] or 0
 
     # 計算每週熱門商品
-    weekly_sales = Sale.objects.filter(sale_date__date__range=[start_of_week, end_of_week])
+    weekly_sales = Sale.objects.filter(sale_date__range=[start_of_week, end_of_week])
     most_popular_products = weekly_sales.values('product__name').annotate(
         total_quantity=Sum('quantity')
     ).order_by('-total_quantity')
@@ -175,48 +178,33 @@ def statistics_view(request):
     return render(request, 'pos_system/statistics.html', context)
 
 
-from django.http import JsonResponse
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Sum, Count
-from .models import Sale, Order, OrderItem
-
 def get_chart_data(request):
-    today = timezone.now().date()  # 使用 timezone.now() 获取当前日期
-    week_ago = today - timedelta(days=7)
+    today = timezone.now().date()
+    week_ago = today - datetime.timedelta(days=7)
 
-    # 日营收数据
     revenue_data = []
     revenue_labels = []
     for i in range(7):
-        day = week_ago + timedelta(days=i)
+        day = week_ago + datetime.timedelta(days=i)
         total_revenue = Sale.objects.filter(sale_date__date=day).aggregate(Sum('quantity'))['quantity__sum'] or 0
         revenue_data.append(total_revenue)
         revenue_labels.append(day.strftime('%Y-%m-%d'))
 
-    # 最热门商品数据
     popular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('-total_quantity')[:5]
     popular_products_labels = [sale['product__name'] for sale in popular_sales]
     popular_products_data = [sale['total_quantity'] for sale in popular_sales]
 
-    # 最不热门商品数据
     unpopular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('total_quantity')[:5]
     unpopular_products_labels = [sale['product__name'] for sale in unpopular_sales]
     unpopular_products_data = [sale['total_quantity'] for sale in unpopular_sales]
 
-    # 找出最多人同時結帳的商品組合
-    from itertools import combinations
-    from collections import Counter
-
-    # 先找到所有訂單中的商品組合
     all_combinations = []
     for order in Order.objects.filter(created_at__gte=week_ago):
         items = OrderItem.objects.filter(order=order).values_list('product__name', flat=True)
-        for r in range(2, len(items) + 1):  # 最小的組合數為2
+        for r in range(2, len(items) + 1):
             combs = combinations(sorted(items), r)
             all_combinations.extend(combs)
-    
-    # 統計每種組合的出現次數
+
     combination_counts = Counter(all_combinations)
     most_common_combinations = combination_counts.most_common(5)
 
