@@ -70,15 +70,27 @@ function addToCart(productId, quantity) {
     });
 }
 
+// 更新總金額顯示時，確保元素存在
 function updateCartDisplay(cart) {
   let cartList = document.getElementById("cart-list");
+  let totalAmountElement = document.getElementById("total-amount");
   cartList.innerHTML = "";
+  let totalAmount = 0;
 
   for (let item_id in cart) {
     let item = cart[item_id];
     let listItem = document.createElement("li");
     listItem.textContent = `${item.name} x ${item.quantity} - $${item.price}`;
     cartList.appendChild(listItem);
+    // 計算總金額
+    totalAmount += item.price * item.quantity;
+  }
+
+  // 更新總金額顯示
+  if (totalAmountElement) {
+    totalAmountElement.textContent = `總金額: $${totalAmount.toFixed(2)}`;
+  } else {
+    console.error("無法找到總金額的元素 ID 'total-amount'。");
   }
 }
 
@@ -113,7 +125,7 @@ function handleCheckout(event) {
       if (data.success) {
         alert("結帳成功！");
         cart = [];
-        updateCartDisplay();
+        updateCartDisplay(cart); // 傳入空的 cart 更新顯示
       } else {
         alert("結帳失敗，請稍後再試。");
       }
