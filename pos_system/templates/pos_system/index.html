@@ -6,6 +6,18 @@
 <h1>POS SYSTEM</h1>
 {% comment %} 這裡是繼承出去的東西 {% endcomment %}
 {% endblock %}
+{%block list%}
+
+  {% for category in categories %}
+     <li>
+      <a href="#category{{ category.id }}" onclick="showSection('category{{ category.id }}')">{{ category.name }}</a>
+    </li>
+  {% endfor %}
+  
+<li>
+ <a href="/statistics/"> 數據與後台控制 </a>
+</li>
+{% endblock %}
 {%block body%}
 
         <!--頁面下方海洋-->
@@ -48,7 +60,7 @@
                <div id="cart-items">
                <!-- Cart items will be dynamically added here -->
                <ul id="cart-list"></ul>
-               <div id="total-amount">總金額: $0.00</div> <!-- 新增顯示總金額的元素 -->
+               <div id="total-amount">總金額: 0</div>
                <form id="checkout-form">
                  {% csrf_token %}
                  <button type="submit">結帳</button>

@@ -82,15 +82,12 @@ function updateCartDisplay(cart) {
     let listItem = document.createElement("li");
     listItem.textContent = `${item.name} x ${item.quantity} - $${item.price}`;
     cartList.appendChild(listItem);
-    // 計算總金額
+    //總金額計算
     totalAmount += item.price * item.quantity;
   }
 
-  // 更新總金額顯示
   if (totalAmountElement) {
-    totalAmountElement.textContent = `總金額: $${totalAmount.toFixed(2)}`;
-  } else {
-    console.error("無法找到總金額的元素 ID 'total-amount'。");
+    totalAmountElement.textContent = `總金額: $${totalAmount}`;
   }
 }
 

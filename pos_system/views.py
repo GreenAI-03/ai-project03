@@ -1,21 +1,27 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.http import JsonResponse
-from django.utils import timezone
-from django.views.decorators.http import require_POST
 from django.db import transaction
-from django.db.models import F, Sum
-from django.utils.timezone import make_aware
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
+from django.db.models import F, Sum, Count
 from decimal import Decimal
+from datetime import timedelta
 from itertools import combinations
 from collections import Counter
-import datetime
 import json
+import os
+import datetime
 
 from .models import Category, Product, Sale, Order, OrderItem
 from .forms import CustomUserCreationForm
-
+from .image_recognition import extract_text_from_image
 
 def index(request):
     if not request.user.is_authenticated:
@@ -137,8 +143,7 @@ def add_to_cart(request):
         request.session['cart'] = cart
 
         return JsonResponse({'cart': cart})
-
-
+    
 def statistics_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
@@ -148,18 +153,14 @@ def statistics_view(request):
     start_of_week = today - datetime.timedelta(days=today.weekday())
     end_of_week = start_of_week + datetime.timedelta(days=6)
 
-    # 確保 start_of_week 和 end_of_week 是時區感知的 datetime
-    start_of_week = make_aware(datetime.datetime.combine(start_of_week, datetime.time.min))
-    end_of_week = make_aware(datetime.datetime.combine(end_of_week, datetime.time.max))
-
     # 使用 aggregation 方法來計算總營收
     sales_today = Sale.objects.filter(sale_date__date=today)
     daily_revenue = sales_today.aggregate(
-        total=Sum(F('quantity') * F('product__price'))
-    )['total'] or 0
+        total=Sum(F('quantity') * F('product__price')
+    ))['total'] or 0
 
     # 計算每週熱門商品
-    weekly_sales = Sale.objects.filter(sale_date__range=[start_of_week, end_of_week])
+    weekly_sales = Sale.objects.filter(sale_date__date__range=[start_of_week, end_of_week])
     most_popular_products = weekly_sales.values('product__name').annotate(
         total_quantity=Sum('quantity')
     ).order_by('-total_quantity')
@@ -187,23 +188,21 @@ def get_chart_data(request):
     
     for i in range(7):
         day = week_ago + datetime.timedelta(days=i)
-        # 确保日期是時區感知的的 datetime
-        start_of_day = make_aware(datetime.datetime.combine(day, datetime.time.min))
-        end_of_day = make_aware(datetime.datetime.combine(day, datetime.time.max))
-        
-        # 計算每天總營收
-        total_revenue = Sale.objects.filter(sale_date__range=[start_of_day, end_of_day]).aggregate(
+        total_revenue = Sale.objects.filter(sale_date__date=day).aggregate(
             total=Sum(F('quantity') * F('product__price'))
-        )['total'] or Decimal('0.00')
-        
-        revenue_data.append(float(total_revenue))  # 轉換為 float 類型以符合前端
+        )['total'] or 0
+        revenue_data.append(total_revenue)
         revenue_labels.append(day.strftime('%Y-%m-%d'))
 
-    popular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('-total_quantity')[:5]
+    popular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(
+        total_quantity=Sum('quantity')
+    ).order_by('-total_quantity')[:5]
     popular_products_labels = [sale['product__name'] for sale in popular_sales]
     popular_products_data = [sale['total_quantity'] for sale in popular_sales]
 
-    unpopular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('total_quantity')[:5]
+    unpopular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(
+        total_quantity=Sum('quantity')
+    ).order_by('total_quantity')[:5]
     unpopular_products_labels = [sale['product__name'] for sale in unpopular_sales]
     unpopular_products_data = [sale['total_quantity'] for sale in unpopular_sales]
 
@@ -230,15 +229,8 @@ def get_chart_data(request):
         'best_combinations_labels': best_combinations_labels,
         'best_combinations_data': best_combinations_data,
     })
+    
 #菜單上傳
-from django.shortcuts import render, redirect
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from django.conf import settings
-import os
-from .image_recognition import extract_text_from_image
-from .models import Product, Category
-
 def upload_menu(request):
     if request.method == 'POST' and request.FILES['menu_image']:
         menu_image = request.FILES['menu_image']
@@ -286,7 +278,6 @@ def save_menu_items(request):
         return redirect('index')  # 或者重定向到您想要的頁面
     return redirect('upload_menu')
 
-from django.shortcuts import get_object_or_404, redirect
 
 def uncategorized_items(request):
     uncategorized_category = Category.objects.get_or_create(name='未分類')[0]
@@ -324,14 +315,8 @@ def update_price(request, item_id):
             except ValueError:
                 return JsonResponse({'success': False, 'error': '無效的價格'})
     return JsonResponse({'success': False, 'error': '無效的請求'})
+
 #歷史訂單
-from django.shortcuts import render
-from django.db.models import Sum
-from .models import Order, OrderItem, Product
-from django.utils import timezone
-from datetime import timedelta
-from django.core.paginator import Paginator
-from django.contrib.auth.decorators import login_required, user_passes_test
 
 def is_staff(user):
     return user.is_staff
@@ -384,8 +369,6 @@ def history_view(request):
         'category_sales': category_sales,
     }
     return render(request, 'pos_system/history.html', context)
-
-from django.http import JsonResponse
 
 @login_required
 @user_passes_test(is_staff)

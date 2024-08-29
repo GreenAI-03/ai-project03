@@ -1,6 +1,19 @@
 {% extends "./base.html" %}
 {% load static %}
-
+{%block list%}
+<li>
+    <a href="{% url 'uncategorized_items' %}">菜單導入資料庫</a>
+</li>
+<li>
+ <a href="/statistics/"> 數據統計 </a>
+</li>
+<li>
+ <a href="{% url 'history' %}">歷史資料</a>
+</li>
+<li>
+    <a href="/"> 回首頁 </a>
+</li>
+{% endblock %}
 {%block body%}
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <script defer src="{% static 'js/script.js' %}"></script>

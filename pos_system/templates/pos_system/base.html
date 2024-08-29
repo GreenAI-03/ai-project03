@@ -27,27 +27,15 @@
     <!--頁面上層漸層色-->
       <div class="container">
        <nav>
-         <ul>
-           {% for category in categories %}
-              <li>
-               <a href="#category{{ category.id }}" onclick="showSection('category{{ category.id }}')">{{ category.name }}</a>
-             </li>
-           {% endfor %}
-           <li>
-            <a href="/statistics/"> 數據統計 </a>
-           </li>
-           <li>
-            <a href="/"> 回首頁 </a>
-           </li>
-           <li>
-            <a href="{% url 'uncategorized_items' %}">未分類項目</a>
-           </li>
-           <li>
-            <a href="{% url 'history' %}">歷史資料</a>
-           </li>
+          <ul>
+           {%block list%}
+            
+           {% endblock %}
           </ul>
+
         </nav>
        <main>
+    
     {%block body%}
 
     {% endblock %}
