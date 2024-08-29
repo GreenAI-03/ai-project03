@@ -6,12 +6,12 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.db.models import F, Sum
-from django.utils.timezone import make_aware, is_naive
+from django.utils.timezone import make_aware
 from decimal import Decimal
 from itertools import combinations
 from collections import Counter
 import datetime
-import json,pytz
+import json
 
 from .models import Category, Product, Sale, Order, OrderItem
 from .forms import CustomUserCreationForm
@@ -74,7 +74,7 @@ def logout_view(request):
 @transaction.atomic
 def checkout(request):
     now = timezone.localtime(timezone.now())
-    print(f"Checkout time: {now}")  # 输出当前时间到日志或控制台
+    print(f"Checkout time: {now}")  # 输出結帳時間到控制台
     try:
         cart = request.session.get('cart', {})
         
@@ -184,10 +184,19 @@ def get_chart_data(request):
 
     revenue_data = []
     revenue_labels = []
+    
     for i in range(7):
         day = week_ago + datetime.timedelta(days=i)
-        total_revenue = Sale.objects.filter(sale_date__date=day).aggregate(Sum('quantity'))['quantity__sum'] or 0
-        revenue_data.append(total_revenue)
+        # 确保日期是時區感知的的 datetime
+        start_of_day = make_aware(datetime.datetime.combine(day, datetime.time.min))
+        end_of_day = make_aware(datetime.datetime.combine(day, datetime.time.max))
+        
+        # 計算每天總營收
+        total_revenue = Sale.objects.filter(sale_date__range=[start_of_day, end_of_day]).aggregate(
+            total=Sum(F('quantity') * F('product__price'))
+        )['total'] or Decimal('0.00')
+        
+        revenue_data.append(float(total_revenue))  # 轉換為 float 類型以符合前端
         revenue_labels.append(day.strftime('%Y-%m-%d'))
 
     popular_sales = Sale.objects.filter(sale_date__gte=week_ago).values('product__name').annotate(total_quantity=Sum('quantity')).order_by('-total_quantity')[:5]

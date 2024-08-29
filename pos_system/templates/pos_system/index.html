@@ -48,6 +48,7 @@
                <div id="cart-items">
                <!-- Cart items will be dynamically added here -->
                <ul id="cart-list"></ul>
+               <div id="total-amount">總金額: $0.00</div> <!-- 新增顯示總金額的元素 -->
                <form id="checkout-form">
                  {% csrf_token %}
                  <button type="submit">結帳</button>
