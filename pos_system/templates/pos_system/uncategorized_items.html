@@ -55,6 +55,62 @@
 </table>
 
 <script>
-// ... 保留之前的 JavaScript 代碼 ...
+function togglePriceEdit(itemId) {
+    const priceSpan = document.getElementById(`price-${itemId}`);
+    const priceInput = document.getElementById(`price-input-${itemId}`);
+    const saveButton = document.getElementById(`save-price-${itemId}`);
+    
+    if (priceSpan.style.display !== 'none') {
+        priceSpan.style.display = 'none';
+        priceInput.style.display = 'inline';
+        saveButton.style.display = 'inline';
+    } else {
+        priceSpan.style.display = 'inline';
+        priceInput.style.display = 'none';
+        saveButton.style.display = 'none';
+    }
+}
+
+function updatePrice(itemId) {
+    const newPrice = document.getElementById(`price-input-${itemId}`).value;
+    const csrftoken = getCookie('csrftoken');
+
+    fetch(`/update-price/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrftoken
+        },
+        body: `price=${newPrice}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`price-${itemId}`).textContent = data.new_price;
+            togglePriceEdit(itemId);
+        } else {
+            alert(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('更新價格時發生錯誤');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 </script>
 {% endblock %}
