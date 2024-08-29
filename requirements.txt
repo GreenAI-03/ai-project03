@@ -3,3 +3,4 @@ python-dotenv==1.0.1
 pymysql==1.1.1
 numpy==1.24.4
 torch==2.2.2
+easyocr==1.7.1
