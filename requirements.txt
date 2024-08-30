@@ -1,6 +1,5 @@
 Django==5.0.7
-python-dotenv==1.0.1
-pymysql==1.1.1
-numpy==1.24.4
-torch==2.2.2
-easyocr==1.7.1
+numpy==1.26.4
+torch==2.4.0
+easyocr==2.4.0
+pillow==10.4.0
