@@ -1,5 +1,5 @@
 Django==5.0.7
 numpy==1.26.4
 torch==2.4.0
-easyocr==2.4.0
+easyocr==1.7.1
 pillow==10.4.0
