@@ -85,3 +85,4 @@ target/
 __pycache__/
 local_settings.py
 myproject/__pycache__/
+aiot.conf
